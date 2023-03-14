@@ -255,17 +255,10 @@ def death_anim(alt_death=False):
         print(s)
         time.sleep(0.1)
     os.system("cls")
-    if alt_death == True:
-        print(
-            "\n" * (h // 2) + " " * ((w // 2) - 10),
-            color_from_hexcode("ff1100") + "lol",
-        )
-        print(" " * ((w // 2) - 10) + f" Skill: issue")
-    else:
-        print(
-            "\n" * (h // 2) + " " * ((w // 2) - 10),
-            color_from_hexcode("ff1100") + "GAME OVER",
-        )
+    print(
+        "\n" * (h // 2) + " " * ((w // 2) - 10),
+        color_from_hexcode("ff1100") + "GAME OVER",
+    )
         print(" " * ((w // 2) - 10) + f" Score: {food_eaten} Level: {level}")
 
 
