@@ -6,7 +6,7 @@ print("\x1b[?25l\x1b[0;0H")
 tile_size = 5
 tile_width = 11
 w, h = 54, 28
-os.system(f"cls&title 2048-Python&mode con: cols={w} lines={h}")
+os.system(f"title 2048-Python&mode con: cols={w} lines={h}")
 movement_directions = (0, -1), (-1, 0), (0, 1), (1, 0)
 movement_keys = ["w", "a", "s", "d"]
 background_color = "bbada2"
