@@ -2,7 +2,7 @@
 import os, time, msvcrt, random, colorsys
 
 os.system("")
-print("\x1b[?25l\x1b[0;0H")
+print("\x1b[2J\x1b[0;0H\x1b[?25l")
 tile_size = 5
 tile_width = 11
 w, h = 54, 28
@@ -217,7 +217,7 @@ def render():
 
 
 def game_over_screen():
-    os.system("cls")
+    print("\x1b[2J\x1b[0;0H")
     print(
         (("\n") * (h // 2))
         + (" " * (w // 2 - 5))
@@ -228,7 +228,7 @@ def game_over_screen():
 
 
 def win_screen():
-    os.system("cls")
+    print("\x1b[2J\x1b[0;0H")
     print(
         (("\n") * (h // 2))
         + (" " * (w // 2 - 5))
@@ -251,7 +251,7 @@ def main():
     tiles = []
     for _ in range(2):
         spawn_tile()
-    os.system("cls")
+    print("\x1b[2J\x1b[0;0H")
     render()
     while True:
         if not game_running:
