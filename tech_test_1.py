@@ -18,18 +18,6 @@ os.system("")
 print(f"\x1b[8;{h+7};{(w*2)+8}t")
 print("\x1b[2J\x1b[0;0H\x1b[?25l")
 
-
-
-
-max_circle_count = 50
-circle_mode = 0
-action_mode = 1
-spawn_cooldown = 0
-movement_mode = 0
-modes = ["None","Particles","Circles","Delete"]
-circle_render_modes = ["Shaded","Flat","Hollow"]
-movement_modes = ["Direct","Smooth"]
-prev_keypresses = []
 class vec3:
     def __init__(self, x, y, z):
         self.x = x
@@ -59,8 +47,13 @@ class vec3:
         1 if self.y>0 else -1 if self.y<0 else 0,
         1 if self.z>0 else -1 if self.y<0 else 0
         )
-    def in_box(self,x_range,y_range,z_range):
-        return x_range[0]<self.x<x_range[1] and y_range[0]<self.y<y_range[1] and z_range[0]<self.z<z_range[1]
+    def in_box(self,minimum,maximum,inclusive=True):
+        min_x,min_y,min_z = minimum
+        max_x,max_y,max_z = maximum
+        if inclusive:
+            return min_x<=self.x<=max_x and min_y<=self.y<=max_y and min_z<=self.z<=max_z
+        else:
+            return min_x<self.x<max_x and min_y<self.y<max_y and min_z<self.y<max_z
     def clamp(self,minimum,maximum):
         return vec3(
         max(minimum.x, min(maximum.x, self.x)),
@@ -140,8 +133,13 @@ class vec2:
         1 if self.x>0 else -1 if self.x<0 else 0,
         1 if self.y>0 else -1 if self.y<0 else 0
         )
-    def in_box(self,x_range,y_range):
-        return x_range[0]<self.x<x_range[1] and y_range[0]<self.y<y_range[1]
+    def in_box(self,minimum,maximum,inclusive=True):
+        min_x,min_y = minimum
+        max_x,max_y = maximum
+        if inclusive:
+            return min_x<=self.x<=max_x and min_y<=self.y<=max_y
+        else:
+            return min_x<self.x<max_x and min_y<self.y<max_y
     def clamp(self,minimum,maximum):
         return vec2(
         max(minimum.x, min(maximum.x, self.x)),
@@ -197,42 +195,86 @@ class vec2:
     __trunc__ = _generic_op(math.trunc)
     __abs__ = _generic_op(abs)
 
+
+
+max_circle_count = 50
+circle_mode = 0
+action_mode = 1
+spawn_cooldown = 0
+movement_mode = 0
+modes = ["None","Particles","Circles","Delete"]
+circle_render_modes = ["Shaded","Flat","Hollow"]
+movement_modes = ["Direct","Smooth"]
+prev_keypresses = []
+
 movement_directions = vec2(0, -1), vec2(-1, 0), vec2(0, 1), vec2(1, 0)
-movement_directions += vec2(0, -1.5), vec2(-1.5, 0), vec2(0, 1.5), vec2(1.5, 0)
-movement_keys = ["w", "a", "s", "d","W","A","S","D"]
+movement_keys = ["w", "a", "s", "d"]
 
 keys_1="`1234567890-=[]\\;\'"
 keys_2 ="~!@#$%^&*()_+{}|:\""
 uppercase_table =str.maketrans(keys_1,keys_2)
 lowercase_table =str.maketrans(keys_2,keys_1)
+
+os_name = os.name
+#os_name = "posix"
+if os_name == "nt":
+    import msvcrt
+elif os_name == "posix":
+    import keyboard
+
 def get_keys():
+    keys_to_remove = "~!@#$%^&*()_+{}?<>|:\"\x00\n"
+    keys_to_replace = {
+        "\x1b":"Escape",
+        "\r":"Enter",
+        "\x08":"Backspace",
+        "\t":"Tab",
+        " ":"Space"
+    }
     keys = set()
-    if os_type=="nt":
-        for i in range(0x00,0xff):
+    keys_hex = set()
+    if os_name=="nt":
+        function_keys = {i:f"F{idx+1}"for idx,i in enumerate(range(0x70,0x85))}
+        modifiers = {0x10:"Shift",0x11:"Control",0x12:"Alt"}
+        for mod in modifiers:
+            key = ctypes.windll.user32.GetKeyState(mod)
+            if key in [0xff80,0xff81]:
+                keys.add(modifiers[mod])
+        for i in range(0x08,0xff):
             key = ctypes.windll.user32.GetKeyState(i)
-            if key in [0xff80,0xff81] and key != 0:
-                n = ctypes.windll.user32.MapVirtualKeyA(ctypes.c_short(i),2)
-                n = chr(n).lower().translate(lowercase_table)
-                if ctypes.windll.user32.GetKeyState(0x10) in [0xff80,0xff81]:
-                    n = n.upper().translate(uppercase_table)
-                if n != "\x00":
-                    keys.add(n)
+            if key in [0xff80,0xff81]:
+                k = ctypes.windll.user32.MapVirtualKeyA(ctypes.c_short(i),2)
+                k = chr(k).lower()
+                if k in keys_to_replace:
+                    k = keys_to_replace[k]
+                if i in function_keys:
+                    keys.add(function_keys[i])
+                keys.add(k)
+                keys_hex.add(hex(i))
         if msvcrt.kbhit():
-            msvcrt.getch() #this is just to get rid of stray keypresses
-    elif os_type=="posix":
-        for i in range(0x00,0xff):
+            msvcrt.getch()
+    elif os_name=="posix":
+        modifiers = ["shift","control","alt"]
+        function_keys = [f"f{i}"for i in range(1,25)]
+        for key in function_keys:
+            if keyboard.is_pressed(key):
+                keys.add(key.capitalize())
+        for mod in modifiers:
+            if keyboard.is_pressed(mod):
+                keys.add(mod.capitalize())
+        for i in range(0x08,0xff):
+            k = chr(i).lower()
             try:
-                if i == 0x10:
-                    print( keyboard.is_pressed(chr(i)))
-                n = chr(i).lower().translate(lowercase_table)
-                key = keyboard.is_pressed(n)
-                if keyboard.is_pressed("shift"):
-                    n = n.upper().translate(uppercase_table)
+                key = keyboard.is_pressed(k)
                 if key:
-                    keys.add(n)
+                    if k in keys_to_replace:
+                        k = keys_to_replace[k]
+                    if i in function_keys:
+                        keys.add(function_keys[i])
+                    keys.add(k)
             except ValueError:
                 pass
-    return list(keys)
+    return [i for i in keys if i not in keys_to_remove]
 
 def handle_keys():
     k = get_keys()
@@ -240,26 +282,25 @@ def handle_keys():
     dir = vec2(0,0)
     movement_keys_pressed = [i for i in k if i in movement_keys]
 
-    if "\r" in k:
+    if "Enter" in k:
         player_action(action_mode)
+    n = 1
+    movement_speed_multiplier = 1
+    if "Shift" in k:
+        n*=-1
+        movement_speed_multiplier = 1.5
     if "q" in k and "q" not in prev_keypresses:
-        movement_mode+=1
-        movement_mode%=2
-    if "Q" in k and "Q" not in prev_keypresses:
-        movement_mode-=1
+        
+        movement_mode+=n
         movement_mode%=2
     if "e" in k and "e" not in prev_keypresses:
-        circle_mode+=1
+        circle_mode+=n
         circle_mode%=3
-    if "E" in k and "E" not in prev_keypresses:
-        circle_mode-=1
-        circle_mode%=3
+
     if "r" in k and "r" not in prev_keypresses:
-        action_mode+=1
+        action_mode+=n
         action_mode%=4
-    if "R" in k and "R" not in prev_keypresses:
-        action_mode-=1
-        action_mode%=4
+
     
     if movement_keys_pressed:
         first_key = movement_keys_pressed[-1]
@@ -268,8 +309,10 @@ def handle_keys():
             
             second_key = movement_keys_pressed[-2]
             dir+=movement_directions[movement_keys.index(second_key)]
+
             if movement_mode == 1:
                 dir/=2
+        dir *= movement_speed_multiplier
     prev_keypresses = k
     return dir
 
@@ -310,18 +353,27 @@ def color_from_hexcode(h, mode="fg"):
 def color_ramp(color1,color2,fac):
     return color_from_rgb(color_array=color1.lerp(color2,fac))
 
-def random_vec3(x_range,y_range,z_range):
+def random_vec3(minimum,maximum):
+    if type(minimum)==vec3:
+        min_x,min_y,min_z = minimum.x,minimum.y,minimum.z
+    else:
+        min_x,min_y,min_z = minimum
+    if type(maximum)==vec3:
+        max_x,max_y,max_z = maximum.x,maximum.y,maximum.z
+    else:
+        max_x,max_y,max_z = maximum
+
     return vec3(
-        random.uniform(x_range[0],x_range[1]),
-        random.uniform(y_range[0],y_range[1]),
-        random.uniform(z_range[0],z_range[1])
+        random.uniform(min_x,max_x),
+        random.uniform(min_y,max_y),
+        random.uniform(min_z,max_z)
     )
 def player_action(mode):
     if mode == 1:
         spawn_particle(p.pos,p.vel,random.randint(3,5))
     if mode == 2:
         global spawn_cooldown
-        c_color = random_vec3((10,255),(10,255),(10,255))
+        c_color = random_vec3(vec3(10,10,10),vec3(255,255,255))
         if spawn_cooldown == 0:
             spawn_circle(p.pos,p.vel,random.uniform(1.5,7.4),c_color)
             spawn_cooldown = 5
@@ -358,7 +410,7 @@ class circle:
 
         self.vel *= 0.98
         self.vel=self.vel.clamp(vec2(-1,-1),vec2(1,1))
-        if new_pos.in_box((self.radius,w-self.radius),(self.radius,h-self.radius)):
+        if new_pos.in_box((self.radius,self.radius),(w-self.radius,h-self.radius)):
             self.pos = new_pos
 
         else:
@@ -392,7 +444,7 @@ class particle:
         if abs(self.vel) < vec2(0.04,0.04):
             self.vel = vec2(0,0)
         self.vel=self.vel.clamp(vec2(-2,-2),vec2(2,2))
-        if new_pos.in_box((0,w),(0,h)):
+        if new_pos.in_box((0,0),(w,h)):
             self.pos = new_pos
         else:
             if not 0<=new_pos.x<w:
@@ -425,16 +477,16 @@ class ply:
             self.vel  = vec2(0,0)
         if movement_mode == 1:
             new_pos = self.vel  + self.pos
-        self.vel =self.vel.clamp(vec2(-1.4,-1.4),vec2(1.4,1.4))
+        self.vel = self.vel.clamp(vec2(-1.4,-1.4),vec2(1.4,1.4))
 
-        if new_pos.in_box((-1,w),(-1,h)):
+        if new_pos.in_box((0,0),(w-1,h-1)):
             self.trail.insert(0,math.floor((self.pos+new_pos)/2))
             self.pos = new_pos
         else:
             if self.vel.length()>0.7:
-                if not 0<=new_pos.x<w:
+                if not 0<=new_pos.x<=w:
                     self.vel.x *=-0.8
-                if not 0<=new_pos.y<h:
+                if not 0<=new_pos.y<=h:
                     self.vel.y *=-0.8
                 spawn_particle(self.pos,self.vel,random.randint(7,12))
 
@@ -614,7 +666,7 @@ def render(t):
     print(box_bottom)
     print(f" Player Speed: {p.vel.length():1f}, Shading: {circle_render_modes[circle_mode]}, Spawn mode: {modes[action_mode]}             ")
     print(f" Movement mode: {movement_modes[movement_mode]}          ")
-
+    print(p.pos.in_box((-1,-1),(w,h)))
     print(reset_screen)
     
 render(0)
