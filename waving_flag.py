@@ -1,8 +1,5 @@
-
-
-
-
-#=
+#=by gloop#5445=#
+#=#
 flag_width,flag_height = 50,30
 flag_type = "pride"
 flag_offset = 20
@@ -11,8 +8,9 @@ flag_scale = 15
 flag_wave_speed = 0.1
 flag_frequency = 1/6
 flag_x_range = (1,-3)
-#=
 frame_sleep_time = 0.02
+#=#
+
 flag_colors = {
     "pride":("ef4252","f7a531","ffd900", "52ad31", "00adde","844294"),
     "nonbinary":("fff731","ffffff","9c5ad6","292929"),
@@ -22,7 +20,6 @@ flag_colors = {
     "lesbian":("d62900","ff9b55","ffffff","d462a5","a50062"),
     "gay":("068d6f","97e7c0","ffffff","7aace1","3c1977")
 }
-
 import os,math,time,sys
 if len(sys.argv)>1:
     if sys.argv[1] in flag_colors:
