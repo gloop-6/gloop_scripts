@@ -1,10 +1,14 @@
 import math,operator
 #by gloop#5445
+import math,operator
+#by gloop#5445
 class vec3:
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
+    def __iter__(self):
+        yield from (self.x,self.y,self.z)
     def __repr__(self):
         return f"({self.x}, {self.y}, {self.z})"
     def __hash__(self):
@@ -76,7 +80,7 @@ class vec3:
     __rsub__ = _arithmetic_op(operator.sub)
     __rtruediv__ = _arithmetic_op(operator.truediv)
     __rfloordiv__ = _arithmetic_op(operator.floordiv)
-    __rmod__ = _arithmetic_op(operator.neg)
+    __rmod__ = _arithmetic_op(operator.mod)
     __rpow__ = _arithmetic_op(operator.pow)
 
     __mul__ = _arithmetic_op(operator.mul)
@@ -84,7 +88,7 @@ class vec3:
     __sub__ = _arithmetic_op(operator.sub)
     __truediv__ = _arithmetic_op(operator.truediv)
     __floordiv__ = _arithmetic_op(operator.floordiv)
-    __mod__ = _arithmetic_op(operator.neg)
+    __mod__ = _arithmetic_op(operator.mod)
     __pow__ = _arithmetic_op(operator.pow)
     __floor__ = _generic_op(math.floor) 
     __round__ = _generic_op(round)
@@ -96,6 +100,8 @@ class vec2:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+    def __iter__(self):
+        yield from (self.x,self.y)
     def __repr__(self):
         return f"({self.x}, {self.y})"
     def __hash__(self):
@@ -161,7 +167,7 @@ class vec2:
     __rsub__ = _arithmetic_op(operator.sub)
     __rtruediv__ = _arithmetic_op(operator.truediv)
     __rfloordiv__ = _arithmetic_op(operator.floordiv)
-    __rmod__ = _arithmetic_op(operator.neg)
+    __rmod__ = _arithmetic_op(operator.mod)
     __rpow__ = _arithmetic_op(operator.pow)
 
     __mul__ = _arithmetic_op(operator.mul)
@@ -169,10 +175,11 @@ class vec2:
     __sub__ = _arithmetic_op(operator.sub)
     __truediv__ = _arithmetic_op(operator.truediv)
     __floordiv__ = _arithmetic_op(operator.floordiv)
-    __mod__ = _arithmetic_op(operator.neg)
+    __mod__ = _arithmetic_op(operator.mod)
     __pow__ = _arithmetic_op(operator.pow)
     __floor__ = _generic_op(math.floor) 
     __round__ = _generic_op(round)
     __ceil__ = _generic_op(math.ceil)
     __trunc__ = _generic_op(math.trunc)
     __abs__ = _generic_op(abs)
+
