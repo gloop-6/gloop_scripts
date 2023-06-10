@@ -10,7 +10,7 @@ class vec3:
     def __iter__(self):
         yield from (self.x,self.y,self.z)
     def __repr__(self):
-        return f"({self.x}, {self.y}, {self.z})"
+        return f"vec3({self.x}, {self.y}, {self.z})"
     def __hash__(self):
         return hash((self.x, self.y, self.z))
     def __contains__(self,val):
@@ -103,7 +103,7 @@ class vec2:
     def __iter__(self):
         yield from (self.x,self.y)
     def __repr__(self):
-        return f"({self.x}, {self.y})"
+        return f"vec2({self.x}, {self.y})"
     def __hash__(self):
         return hash((self.x, self.y))
     def __contains__(self,val):
