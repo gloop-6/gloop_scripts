@@ -1,12 +1,18 @@
-import math,operator
-#by gloop#5445
-import math,operator
-#by gloop#5445
+import math,operator,decimal,itertools,numbers
+#by _gloop / gloop#5445
+
 class vec3:
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, *z):
+        z = z[0]
+        for i in (x,y,z):
+            if not isinstance(i,(numbers.Real,decimal.Decimal)):
+                raise ValueError(f"\"{i}\" is non-numeric")
         self.x = x
         self.y = y
         self.z = z
+    @classmethod
+    def from_iterable(cls,iterable):
+        return cls(*iterable)
     def __iter__(self):
         yield from (self.x,self.y,self.z)
     def __repr__(self):
@@ -45,6 +51,14 @@ class vec3:
         max(minimum.x, min(maximum.x, self.x)),
         max(minimum.y, min(maximum.y, self.y)),
         max(minimum.z, min(maximum.z, self.z))
+        )
+    def __matmul__(self,other):
+        return sum(self*other)
+    def cross(self,other):
+        return vec3(
+            self.y*other.z - self.z*other.y,
+            self.z*other.x - self.x*other.z,
+            self.x*other.y - self.y*other.x
         )
     def _equality_op(op):
         def _vec_op(a,b):
@@ -97,9 +111,16 @@ class vec3:
     __abs__ = _generic_op(abs)
 
 class vec2:
-    def __init__(self, x, y):
+    def __init__(self, x, *y):
+        y = y[0]
+        for i in (x,y):
+            if not isinstance(i,(numbers.Real,decimal.Decimal)):
+                raise ValueError(f"\"{i}\" is non-numeric")
         self.x = x
         self.y = y
+    @classmethod
+    def from_iterable(cls,iterable):
+        return cls(*iterable)
     def __iter__(self):
         yield from (self.x,self.y)
     def __repr__(self):
@@ -128,11 +149,19 @@ class vec2:
             return min_x<=self.x<=max_x and min_y<=self.y<=max_y
         else:
             return min_x<self.x<max_x and min_y<self.y<max_y
+
     def clamp(self,minimum,maximum):
         return vec2(
         max(minimum.x, min(maximum.x, self.x)),
         max(minimum.y, min(maximum.y, self.y))
         )
+
+    def __matmul__(self,other):
+        return sum(self*other)
+    
+    def cross(self,other):
+        return (self.x*other.y)-(self.y*other.x)
+    
     def _equality_op(op):
         def _vec_op(a,b):
             if type(b) == vec2:
