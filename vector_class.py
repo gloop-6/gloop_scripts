@@ -1,7 +1,5 @@
 import math,operator
-#by gloop#5445
-import math,operator
-#by gloop#5445
+#by _gloop / gloop#5445
 class vec3:
     def __init__(self, x, y, z):
         self.x = x
@@ -46,6 +44,17 @@ class vec3:
         max(minimum.y, min(maximum.y, self.y)),
         max(minimum.z, min(maximum.z, self.z))
         )
+        
+    def __matmul__(self,other):
+        return sum(self*other)
+        
+    def cross(self,other):
+        return vec3(
+            self.y*other.z - self.z*other.y,
+            self.z*other.x - self.x*other.z,
+            self.x*other.y - self.y*other.x
+        )
+        
     def _equality_op(op):
         def _vec_op(a,b):
             if type(b) == vec3:
@@ -133,6 +142,11 @@ class vec2:
         max(minimum.x, min(maximum.x, self.x)),
         max(minimum.y, min(maximum.y, self.y))
         )
+
+    def __matmul__(self,other):
+        return sum(self*other)
+    def cross(self,other):
+        return (self.x*other.y)-(self.y*other.x)
     def _equality_op(op):
         def _vec_op(a,b):
             if type(b) == vec2:
@@ -182,4 +196,3 @@ class vec2:
     __ceil__ = _generic_op(math.ceil)
     __trunc__ = _generic_op(math.trunc)
     __abs__ = _generic_op(abs)
-
