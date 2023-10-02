@@ -9,7 +9,6 @@ zoom = (0.8,0.8)
 hue_offset = 0.1
 frame_count = 50
 max_iterations = 50
-chunk_size = 6
 speed = 3
 trig_offset = -math.pi/4
 #=======
