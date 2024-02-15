@@ -6,7 +6,8 @@
 #R - change spawn/delete mode
 #WASD - movement
 #Enter - interact
-import os,time,ctypes,math,random,colorsys,operator
+from vector_class import vec2,vec3
+import os,time,ctypes,math,random,colorsys
 os_type = os.name
 if os_type=="nt":
     import msvcrt
@@ -17,185 +18,6 @@ w,h = 80,40
 os.system("")
 print(f"\x1b[8;{h+7};{(w*2)+8}t")
 print("\x1b[2J\x1b[0;0H\x1b[?25l")
-
-class vec3:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-    def __repr__(self):
-        return f"({self.x}, {self.y}, {self.z})"
-    def __hash__(self):
-        return hash((self.x, self.y, self.z))
-    def __contains__(self,val):
-        return bool(self.x == val or self.y == val or self.z == val)
-    def __bool__(self):
-        return bool(self.x or self.y or self.z)
-    def length(self):
-        return math.hypot(self.x,self.y,self.y)
-    def lerp(self,other,t):
-        return vec3(
-            (1-t)*self.x+t*other.x,
-            (1-t)*self.y+t*other.y,
-            (1-t)*self.z+t*other.z
-            )
-    def distance(self,other):
-        return math.hypot(self.x-other.x,self.y-other.y,self.z-other.z)
-    def sign(self):
-        return vec3(
-        1 if self.x>0 else -1 if self.x<0 else 0,
-        1 if self.y>0 else -1 if self.y<0 else 0,
-        1 if self.z>0 else -1 if self.y<0 else 0
-        )
-    def in_box(self,minimum,maximum,inclusive=True):
-        min_x,min_y,min_z = minimum
-        max_x,max_y,max_z = maximum
-        if inclusive:
-            return min_x<=self.x<=max_x and min_y<=self.y<=max_y and min_z<=self.z<=max_z
-        else:
-            return min_x<self.x<max_x and min_y<self.y<max_y and min_z<self.y<max_z
-    def clamp(self,minimum,maximum):
-        return vec3(
-        max(minimum.x, min(maximum.x, self.x)),
-        max(minimum.y, min(maximum.y, self.y)),
-        max(minimum.z, min(maximum.z, self.z))
-        )
-    def _equality_op(op):
-        def _vec_op(a,b):
-            if type(b) == vec3:
-                return op(a.x,b.x) and op(a.y,b.y) and op(a.z,b.z)
-            if type(b) in (list,tuple):
-                return op(a.x,b[0]) and op(a.y,b[1]) and op(a.z,b[2])
-            if type(b) in (int,float):
-                return op(a.x,b) and op(a.y,b) and op(a.z,b)
-        return _vec_op
-    def _arithmetic_op(op):
-        def _vec_op(a,b):
-            if type(b) == vec3:
-                return vec3(op(a.x,b.x), op(a.y,b.y), op(a.z,b.z))
-            if type(b) in (list,tuple):
-                return vec3(op(a.x,b[0]), op(a.y,b[1]), op(a.z,b[2]))
-            if type(b) in (int,float):
-                return vec3(op(a.x,b), op(a.y,b), op(a.z,b))
-        return _vec_op
-    def _generic_op(op):
-        def _vec_op(a):
-            return vec3(op(a.x), op(a.y), op(a.z))
-        return _vec_op
-    __eq__ = _equality_op(operator.eq)
-    __lt__ = _equality_op(operator.lt)
-    __le__ = _equality_op(operator.le)
-    __gt__ = _equality_op(operator.gt)
-    __ge__ = _equality_op(operator.ge)
-    __ne__ = _equality_op(operator.ne)
-
-    __rmul__ = _arithmetic_op(operator.mul)
-    __radd__ = _arithmetic_op(operator.add)
-    __rsub__ = _arithmetic_op(operator.sub)
-    __rtruediv__ = _arithmetic_op(operator.truediv)
-    __rfloordiv__ = _arithmetic_op(operator.floordiv)
-    __rmod__ = _arithmetic_op(operator.neg)
-    __rpow__ = _arithmetic_op(operator.pow)
-
-    __mul__ = _arithmetic_op(operator.mul)
-    __add__ = _arithmetic_op(operator.add)
-    __sub__ = _arithmetic_op(operator.sub)
-    __truediv__ = _arithmetic_op(operator.truediv)
-    __floordiv__ = _arithmetic_op(operator.floordiv)
-    __mod__ = _arithmetic_op(operator.neg)
-    __pow__ = _arithmetic_op(operator.pow)
-    __floor__ = _generic_op(math.floor) 
-    __round__ = _generic_op(round)
-    __ceil__ = _generic_op(math.ceil)
-    __trunc__ = _generic_op(math.trunc)
-    __abs__ = _generic_op(abs)
-
-class vec2:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-    def __repr__(self):
-        return f"({self.x}, {self.y})"
-    def __hash__(self):
-        return hash((self.x, self.y))
-    def __contains__(self,val):
-        return bool(self.x == val or self.y == val)
-    def __bool__(self):
-        return bool(self.x or self.y)
-    def length(self):
-        return math.hypot(self.x,self.y)
-    def lerp(self,other,t):
-        return vec2((1-t)*self.x+t*other.x,(1-t)*self.y+t*other.y)
-    def distance(self,other):
-        return math.hypot(self.x-other.x,self.y-other.y)
-    def sign(self):
-        return vec2(
-        1 if self.x>0 else -1 if self.x<0 else 0,
-        1 if self.y>0 else -1 if self.y<0 else 0
-        )
-    def in_box(self,minimum,maximum,inclusive=True):
-        min_x,min_y = minimum
-        max_x,max_y = maximum
-        if inclusive:
-            return min_x<=self.x<=max_x and min_y<=self.y<=max_y
-        else:
-            return min_x<self.x<max_x and min_y<self.y<max_y
-    def clamp(self,minimum,maximum):
-        return vec2(
-        max(minimum.x, min(maximum.x, self.x)),
-        max(minimum.y, min(maximum.y, self.y))
-        )
-    def _equality_op(op):
-        def _vec_op(a,b):
-            if type(b) == vec2:
-                return op(a.x,b.x) and op(a.y,b.y)
-            if type(b) in (list,tuple):
-                return op(a.x,b[0]) and op(a.y,b[1])
-            if type(b) in (int,float):
-                return op(a.x,b) and op(a.y,b)
-        return _vec_op
-    def _arithmetic_op(op):
-        def _vec_op(a,b):
-            if type(b) == vec2:
-                return vec2(op(a.x,b.x), op(a.y,b.y))
-            if type(b) in (list,tuple):
-                return vec2(op(a.x,b[0]), op(a.y,b[1]))
-            if type(b) in (int,float):
-                return vec2(op(a.x,b), op(a.y,b))
-        return _vec_op
-    def _generic_op(op):
-        def _vec_op(a):
-            return vec2(op(a.x), op(a.y))
-        return _vec_op
-    __eq__ = _equality_op(operator.eq)
-    __lt__ = _equality_op(operator.lt)
-    __le__ = _equality_op(operator.le)
-    __gt__ = _equality_op(operator.gt)
-    __ge__ = _equality_op(operator.ge)
-    __ne__ = _equality_op(operator.ne)
-
-    __rmul__ = _arithmetic_op(operator.mul)
-    __radd__ = _arithmetic_op(operator.add)
-    __rsub__ = _arithmetic_op(operator.sub)
-    __rtruediv__ = _arithmetic_op(operator.truediv)
-    __rfloordiv__ = _arithmetic_op(operator.floordiv)
-    __rmod__ = _arithmetic_op(operator.neg)
-    __rpow__ = _arithmetic_op(operator.pow)
-
-    __mul__ = _arithmetic_op(operator.mul)
-    __add__ = _arithmetic_op(operator.add)
-    __sub__ = _arithmetic_op(operator.sub)
-    __truediv__ = _arithmetic_op(operator.truediv)
-    __floordiv__ = _arithmetic_op(operator.floordiv)
-    __mod__ = _arithmetic_op(operator.neg)
-    __pow__ = _arithmetic_op(operator.pow)
-    __floor__ = _generic_op(math.floor) 
-    __round__ = _generic_op(round)
-    __ceil__ = _generic_op(math.ceil)
-    __trunc__ = _generic_op(math.trunc)
-    __abs__ = _generic_op(abs)
-
-
 
 max_circle_count = 50
 circle_mode = 0
@@ -380,12 +202,12 @@ def player_action(mode):
     if mode == 3:
         circle_positions = get_circle_positions()
         particle_positions = get_particle_positions()
-        if math.floor(p.pos) in circle_positions:
-            circ = circle_positions[math.floor(p.pos)]
+        if p.pos.floor() in circle_positions:
+            circ = circle_positions[p.pos.floor()]
             c_instance = circles[circles.index(circ)]
             c_instance.remove()
-        if math.floor(p.pos) in particle_positions:
-            part = particle_positions[math.floor(p.pos)]
+        if p.pos.floor() in particle_positions:
+            part = particle_positions[p.pos.floor()]
             p_instance = particles[particles.index(part)]
             p_instance.remove()
 
@@ -472,7 +294,7 @@ class ply:
         if len(self.trail)>self.trail_length:
             self.trail.pop(-1)
         else:
-            self.trail.insert(0,math.floor(self.pos))
+            self.trail.insert(0,self.pos.floor())
         if abs(self.vel ) < vec2(0.04,0.04):
             self.vel  = vec2(0,0)
         if movement_mode == 1:
@@ -480,7 +302,7 @@ class ply:
         self.vel = self.vel.clamp(vec2(-1.4,-1.4),vec2(1.4,1.4))
 
         if new_pos.in_box((0,0),(w-1,h-1)):
-            self.trail.insert(0,math.floor((self.pos+new_pos)/2))
+            self.trail.insert(0,((self.pos+new_pos)/2).floor())
             self.pos = new_pos
         else:
             if self.vel.length()>0.7:
@@ -538,14 +360,15 @@ p = ply(vec2(w//2,h//2),vec2(0,0),[],20)
 trail_chars = "⬤⬣●◾•⬝     "
 particle_chars = "⬝•◾x"
 def get_particle_positions():
-    return {math.floor(i.pos):i for i in particles}
+    return {i.pos.floor():i for i in particles}
 
 def bresenham_circle(pos,radius):
     switch = 3 - (2 * radius)
     points = set()
     x = 0
     y = int(radius)
-    x2,y2 = int(pos.x),int(pos.y)
+    x2,y2 = pos
+    x2,y2 = int(x2),int(y2)
     while x <= y:
         points.add((x+x2,-y+y2))
         points.add((y+x2,-x+y2))
@@ -567,7 +390,7 @@ def implicit_circle(pos,radius):
     for y in range(-int(radius),int(radius)):
         for x in range(-int(radius),int(radius)):
             if (x+0.5)**2 + (y+0.5)**2 < (int(radius)**2):
-                points.add(math.floor(vec2(x,y)+pos))
+                points.add((vec2(x,y)+pos).floor())
     return points
 def radius_circle(pos,radius):
     points = set() 
@@ -575,28 +398,28 @@ def radius_circle(pos,radius):
         for x in range(-int(radius),int(radius)):
             pos2 = vec2(0.5,0.5)
             if (vec2(x,y)+pos2).length()<radius:
-                points.add((math.floor(vec2(x,y)+pos),(vec2(x,y)+pos2).length()))
+                points.add(((vec2(x,y)+pos).floor(),(vec2(x,y)+pos2).length()))
     return points
 def get_circle_render_positions():
     points = {}
     distances = {}
     if circle_mode==0:
         for i in circles:
-            circ = radius_circle(math.floor(i.pos),i.radius)
+            circ = radius_circle(i.pos.floor(),i.radius)
             for k in circ:
                 points[k[0]]=(i)
                 distances[k[0]]=(i,k[1])
         return points,distances
     if circle_mode==1:
         for i in circles:
-            circ = implicit_circle(math.floor(i.pos),i.radius)
+            circ = implicit_circle(i.pos.floor(),i.radius)
             for k in circ:
                 points[k]=(i)
                 distances[k]=(i,0)
         return points,0
     if circle_mode==2:
         for i in circles:
-            circ = bresenham_circle(math.floor(i.pos),i.radius)
+            circ = bresenham_circle(i.pos.floor(),i.radius)
             for k in circ:
                 points[k]=i
         return points,0
@@ -609,7 +432,7 @@ def get_circle_positions():
     return points
 circles = []
 
-def render(t):
+def render():
     line = ""
     particle_positions = get_particle_positions()
     circle_positions,circle_distances = get_circle_render_positions()
@@ -623,7 +446,6 @@ def render(t):
             line = ""
         for x in range(w):
             ch = "  "
-
             if vec2(x,y) in particle_positions.keys():
                 part = particle_positions[vec2(x,y)]
                 particle_char = particle_chars[clamp(0,part.life//3,len(particle_chars)-1)]
@@ -638,8 +460,8 @@ def render(t):
                 sat = (p.trail.index(vec2(x,y))/26)+0.3
                 particle_color = color_from_hsv(hue,sat,1)
                 ch = particle_color+trail_chars[p.trail.index(vec2(x,y))//3]+" \x1b[0m"
-    
-            if vec2(x,y)==math.floor(p.pos):
+
+            if vec2(x,y)==p.pos.floor():
                 hue = p.vel.length()/15
                 sat = 0
                 player_color = color_from_hsv(hue,sat,1)
@@ -651,12 +473,12 @@ def render(t):
                 if circle_mode==0:
                     shade = circle_distances[(x,y)][1]
                     shade = vec3(shade,shade,shade)
-                    circle_color = math.floor(c_instance.color - (shade/c_instance.radius)*150).clamp(vec3(0,0,0),vec3(255,255,255))
+                    circle_color = (c_instance.color - (shade/c_instance.radius)*150).floor().clamp(vec3(0,0,0),vec3(255,255,255))
                 else:
-                    circle_color = math.floor(c_instance.color).clamp(vec3(0,0,0),vec3(255,255,255))
+                    circle_color = c_instance.color.floor().clamp(vec3(0,0,0),vec3(255,255,255))
                 circle_color = color_from_rgb(color_array=circle_color)
                 ch = circle_color+"██\x1b[0m"
-            if vec2(x,y)==math.floor(p.pos):
+            if vec2(x,y)==p.pos.floor():
                 hue = p.vel.length()/15
                 sat = 0
                 player_color = color_from_hsv(hue,sat,1)
@@ -669,7 +491,7 @@ def render(t):
     print(p.pos.in_box((-1,-1),(w,h)))
     print(reset_screen)
     
-render(0)
+render()
 t=0
 while True:
     if spawn_cooldown != 0:
@@ -686,6 +508,5 @@ while True:
         p.update(dir)
     else:
         p.update(vec2(0,0))
-    render(t)
-
+    render()
     time.sleep(0.02)
